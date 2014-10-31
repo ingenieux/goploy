@@ -32,7 +32,6 @@ type Deployment struct {
 	environmentName string
 	region          string
 	commitId        string
-	skipUpdateP     bool
 	time            time.Time
 	date            string
 	dateTime        string
@@ -48,10 +47,6 @@ func (d *Deployment) ApplicationName(newApplicationName string) {
 
 func (d *Deployment) EnvironmentName(newEnvironmentName string) {
 	d.environmentName = newEnvironmentName
-}
-
-func (d *Deployment) SkipUpdateP(newSkipUpdateP bool) {
-	d.skipUpdateP = newSkipUpdateP
 }
 
 func (d *Deployment) CommitId(newCommitId string) error {
@@ -83,7 +78,7 @@ func (d *Deployment) GetPushURL() string {
 	path := fmt.Sprintf("/v1/repos/%s/commitid/%s",
 		hex.EncodeToString([]byte(d.applicationName)), hex.EncodeToString([]byte(d.commitId)))
 
-	if "" != d.environmentName && (!d.skipUpdateP) {
+	if "" != d.environmentName {
 		path += fmt.Sprintf("/environment/%s", hex.EncodeToString([]byte(d.environmentName)))
 	}
 
@@ -136,23 +131,13 @@ func NewDeployment() (*Deployment, error) {
 		return nil, err
 	}
 
-	applicationName, err := tryOrPanic("AWSEB_APPLICATION_NAME")
-
-	if nil != err {
-		return nil, err
-	}
-
-	environmentName := tryDefault("AWSEB_ENVIRONMENT_NAME", "")
-
 	region := tryDefault("AWS_DEFAULT_REGION", "us-east-1")
 
 	result := Deployment{
-		accessKey:       accessKeyId,
-		secretKey:       secretAccessKey,
-		applicationName: applicationName,
-		environmentName: environmentName,
-		region:          region,
-		time:            time.Now(),
+		accessKey: accessKeyId,
+		secretKey: secretAccessKey,
+		region:    region,
+		time:      time.Now(),
 	}
 
 	return &result, nil
